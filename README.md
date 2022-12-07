@@ -14,7 +14,7 @@ let-env PROMPT_COMMAND = { full-left-prompt }
 3. 保存后重新运行 nushell
 
 ## 高级用法
-在 `config.nu` 中做下面的修改。
+对上面的内容进行修改。
 
 1. 顺序执行自定义项
 ```nu
