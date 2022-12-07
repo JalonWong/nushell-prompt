@@ -1,4 +1,4 @@
-# A prompt theme engine for Nushell
+# A prompt theme for Nushell
 一个 Nushell 的命令行提示主题。
 
 ## 使用说明
