@@ -1,6 +1,8 @@
 # A prompt theme for Nushell
 一个 Nushell 的命令行提示主题。
 
+![](image/p.png)
+
 ## 使用说明
 1. 将 `prompt.nu` 文件下载到 `~/.config/nushell` 目录。
 2. 运行 `config nu` 并在配置文件中添加如下内容。
