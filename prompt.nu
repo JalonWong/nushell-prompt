@@ -63,11 +63,12 @@ let USER_STYLE = $'(ansi green)'
 let PATH_STYLE = $'(ansi light_blue)'
 let BRANCH_STYLE = $'(ansi dark_gray_bold)'
 let AHEAD_STYLE = $'(ansi green)(char branch_ahead)'
-let BEHIND_STYLE = $'(ansi light_yellow_bold)(char branch_behind)'
+let BEHIND_STYLE = $'(ansi yellow_bold)(char branch_behind)'
 let NEW_FILE_STYLE = $'(ansi green)N'
 let ADD_FILE_STYLE = $'(ansi green)A'
 let MODIFY_FILE_STYLE = $'(ansi yellow)M'
 let DELETE_FILE_STYLE = $'(ansi red)D'
+let CONFLICT_FILE_STYLE = $'(ansi light_purple_bold)C'
 
 def username-style [show_host: bool] {
     let name = get-username
@@ -158,7 +159,7 @@ def full-git-style [] {
         let info = ($info_lines | reduce -f {
             out: [],
             staged: [0, 0, 0],
-            unstaged: [0, 0, 0],
+            unstaged: [0, 0, 0, 0],
             track: false,
             remote: false,
         } { |str, ctx|
@@ -202,6 +203,8 @@ def full-git-style [] {
             # Status
             if $l.0 == '?' {
                 $unstaged = ($unstaged | update 0 ($unstaged.0 + 1))
+            } else if $l.0 == 'u' {
+                $unstaged = ($unstaged | update 4 ($unstaged.4 + 1))
             } else if $l.0 == '1' or $l.0 == '2' {
                 let state_l = ($l.1 | split chars)
                 $staged = (update-git-status $staged $state_l.0)
@@ -248,6 +251,10 @@ def full-git-style [] {
 
         # Unstage string
         mut unstage_list = []
+        if $info.unstaged.3 > 0 {
+            $unstage_list = ($unstage_list | append $' ($CONFLICT_FILE_STYLE)($info.unstaged.3)(ansi reset)')
+        }
+
         if $info.unstaged.0 > 0 {
             $unstage_list = ($unstage_list | append $' ($NEW_FILE_STYLE)($info.unstaged.0)(ansi reset)')
         }
