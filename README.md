@@ -8,7 +8,7 @@
 2. 运行 `config nu` 并在配置文件中添加如下内容。
 ```nu
 source ~/.config/nushell/prompt.nu
-let-env PROMPT_INDICATOR = { prompt-indicator }
+let-env PROMPT_INDICATOR = { "" }
 let-env PROMPT_COMMAND = { full-left-prompt }
 ```
 3. 保存后重新运行 nushell

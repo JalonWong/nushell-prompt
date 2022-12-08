@@ -1,4 +1,4 @@
-# let-env PROMPT_INDICATOR = { prompt-indicator }
+# let-env PROMPT_INDICATOR = { "" }
 #
 # let-env PROMPT_COMMAND = { full-left-prompt }
 # or
@@ -8,14 +8,6 @@
 #     'fast-git'
 #     'duration',
 # ]}
-
-export def prompt-indicator [] {
-    if ($env.LAST_EXIT_CODE | into int) == 0 {
-        "\r\n〉"
-    } else {
-        $"\r\n(ansi red)〉(ansi reset)"
-    }
-}
 
 export def full-left-prompt [] {
     (par-left-prompt [
@@ -29,11 +21,11 @@ export def full-left-prompt [] {
 # Filter ----------------------------------------------------------------------
 
 export def left-prompt [modules: list] {
-    ($modules | each { |name| (exec-module $name)} | str join)
+    ($modules | append 'indicator' | each { |name| (exec-module $name)} | str join)
 }
 
 export def par-left-prompt [modules: list] {
-    let str_table = ($modules | par-each { |name|
+    let str_table = ($modules | append 'indicator' | par-each { |name|
         { name: $name, content: (exec-module $name) }
     })
     ($modules | each { |name| ($str_table | where name == $'($name)' | get content.0)} | str join)
@@ -52,6 +44,8 @@ def exec-module [name: string] {
         (full-git-style)
     } else if $name == 'duration' {
         (duration-style)
+    } else if $name == 'indicator' {
+        (prompt-indicator)
     } else {
         ''
     }
@@ -71,6 +65,14 @@ let ADD_FILE_STYLE = $'(ansi green)A'
 let MODIFY_FILE_STYLE = $'(ansi yellow)M'
 let DELETE_FILE_STYLE = $'(ansi red)D'
 let CONFLICT_FILE_STYLE = $'(ansi light_purple_bold)C'
+
+def prompt-indicator [] {
+    if ($env.LAST_EXIT_CODE | into int) == 0 {
+        $"\r\n(ansi cyan)> "
+    } else {
+        $"\r\n(ansi red)x "
+    }
+}
 
 def username-style [show_host: bool] {
     let name = get-username
