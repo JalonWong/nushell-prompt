@@ -21,14 +21,14 @@ export def full-left-prompt [] {
 # Filter ----------------------------------------------------------------------
 
 export def left-prompt [modules: list] {
-    ($modules | append 'indicator' | each { |name| (exec-module $name)} | str join)
+    ($modules | each { |name| (exec-module $name)} | append $'(prompt-indicator)' | str join)
 }
 
 export def par-left-prompt [modules: list] {
-    let str_table = ($modules | append 'indicator' | par-each { |name|
+    let str_table = ($modules | par-each { |name|
         { name: $name, content: (exec-module $name) }
     })
-    ($modules | each { |name| ($str_table | where name == $'($name)' | get content.0)} | str join)
+    ($modules | each { |name| ($str_table | where name == $'($name)' | get content.0)} | append $'(prompt-indicator)' | str join)
 }
 
 def exec-module [name: string] {
@@ -44,8 +44,6 @@ def exec-module [name: string] {
         (full-git-style)
     } else if $name == 'duration' {
         (duration-style)
-    } else if $name == 'indicator' {
-        (prompt-indicator)
     } else {
         ''
     }
