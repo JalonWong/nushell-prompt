@@ -158,8 +158,8 @@ def full-git-style [] {
         # Scan lines
         let info = ($info_lines | reduce -f {
             out: [],
-            staged: [0, 0, 0],
-            unstaged: [0, 0, 0, 0],
+            staged: {a: 0, m: 0, d: 0},
+            unstaged: {n: 0, m: 0, d: 0, c: 0},
             track: false,
             remote: false,
         } { |str, ctx|
@@ -202,9 +202,9 @@ def full-git-style [] {
 
             # Status
             if $l.0 == '?' {
-                $unstaged = ($unstaged | update 0 ($unstaged.0 + 1))
+                $unstaged = ($unstaged | update n ($unstaged.n + 1))
             } else if $l.0 == 'u' {
-                $unstaged = ($unstaged | update 4 ($unstaged.4 + 1))
+                $unstaged = ($unstaged | update c ($unstaged.c + 1))
             } else if $l.0 == '1' or $l.0 == '2' {
                 let state_l = ($l.1 | split chars)
                 $staged = (update-git-status $staged $state_l.0)
@@ -237,34 +237,34 @@ def full-git-style [] {
 
         # Stage string
         mut stage_list = []
-        if $info.staged.0 > 0 {
-            $stage_list = ($stage_list | append $' ($ADD_FILE_STYLE)($info.staged.0)(ansi reset)')
+        if $info.staged.a > 0 {
+            $stage_list = ($stage_list | append $' ($ADD_FILE_STYLE)($info.staged.a)(ansi reset)')
         }
 
-        if $info.staged.1 > 0 {
-            $stage_list = ($stage_list | append $' ($MODIFY_FILE_STYLE)($info.staged.1)(ansi reset)')
+        if $info.staged.m > 0 {
+            $stage_list = ($stage_list | append $' ($MODIFY_FILE_STYLE)($info.staged.m)(ansi reset)')
         }
 
-        if $info.staged.2 > 0 {
-            $stage_list = ($stage_list | append $' ($DELETE_FILE_STYLE)($info.staged.2)(ansi reset)')
+        if $info.staged.d > 0 {
+            $stage_list = ($stage_list | append $' ($DELETE_FILE_STYLE)($info.staged.d)(ansi reset)')
         }
 
         # Unstage string
         mut unstage_list = []
-        if $info.unstaged.3 > 0 {
-            $unstage_list = ($unstage_list | append $' ($CONFLICT_FILE_STYLE)($info.unstaged.3)(ansi reset)')
+        if $info.unstaged.c > 0 {
+            $unstage_list = ($unstage_list | append $' ($CONFLICT_FILE_STYLE)($info.unstaged.c)(ansi reset)')
         }
 
-        if $info.unstaged.0 > 0 {
-            $unstage_list = ($unstage_list | append $' ($NEW_FILE_STYLE)($info.unstaged.0)(ansi reset)')
+        if $info.unstaged.n > 0 {
+            $unstage_list = ($unstage_list | append $' ($NEW_FILE_STYLE)($info.unstaged.n)(ansi reset)')
         }
 
-        if $info.unstaged.1 > 0 {
-            $unstage_list = ($unstage_list | append $' ($MODIFY_FILE_STYLE)($info.unstaged.1)(ansi reset)')
+        if $info.unstaged.m > 0 {
+            $unstage_list = ($unstage_list | append $' ($MODIFY_FILE_STYLE)($info.unstaged.m)(ansi reset)')
         }
 
-        if $info.unstaged.2 > 0 {
-            $unstage_list = ($unstage_list | append $' ($DELETE_FILE_STYLE)($info.unstaged.2)(ansi reset)')
+        if $info.unstaged.d > 0 {
+            $unstage_list = ($unstage_list | append $' ($DELETE_FILE_STYLE)($info.unstaged.d)(ansi reset)')
         }
 
         # Append list
@@ -281,15 +281,15 @@ def full-git-style [] {
 }
 
 def update-git-status [
-    status: list
+    status: record
     m: string
 ] {
     if $m == 'A' {
-        ($status | update 0 (($status.0 | into int) + 1))
+        ($status | update a (($status.a | into int) + 1))
     } else if $m == 'M' {
-        ($status | update 1 (($status.1 | into int) + 1))
+        ($status | update m (($status.m | into int) + 1))
     } else if $m == 'D' {
-        ($status | update 2 (($status.2 | into int) + 1))
+        ($status | update d (($status.d | into int) + 1))
     } else {
         $status
     }
