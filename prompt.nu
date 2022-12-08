@@ -64,6 +64,8 @@ let PATH_STYLE = $'(ansi light_blue)'
 let BRANCH_STYLE = $'(ansi dark_gray_bold)'
 let AHEAD_STYLE = $'(ansi green)(char branch_ahead)'
 let BEHIND_STYLE = $'(ansi yellow_bold)(char branch_behind)'
+let STAGE_STYLE = $'(ansi blue)S(ansi reset)'
+let UNSTAGE_STYLE = $'(ansi dark_gray)U(ansi reset)'
 let NEW_FILE_STYLE = $'(ansi green)N'
 let ADD_FILE_STYLE = $'(ansi green)A'
 let MODIFY_FILE_STYLE = $'(ansi yellow)M'
@@ -269,11 +271,11 @@ def full-git-style [] {
 
         # Append list
         if ($stage_list | length) > 0 {
-            $out_list = ($out_list | append $' | S:' | append $stage_list)
+            $out_list = ($out_list | append $' | ($STAGE_STYLE):' | append $stage_list)
         }
 
         if ($unstage_list | length) > 0 {
-            $out_list = ($out_list | append $' | U:' | append $unstage_list)
+            $out_list = ($out_list | append $' | ($UNSTAGE_STYLE):' | append $unstage_list)
         }
 
         $'[($out_list | str join)(ansi reset)]'
