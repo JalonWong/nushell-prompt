@@ -63,6 +63,7 @@ let ADD_FILE_STYLE = $'(ansi green)A'
 let MODIFY_FILE_STYLE = $'(ansi yellow)M'
 let DELETE_FILE_STYLE = $'(ansi red)D'
 let CONFLICT_FILE_STYLE = $'(ansi light_purple_bold)C'
+let DURATION_STYLE = $'(ansi yellow)'
 
 def prompt-indicator [] {
     if ($env.LAST_EXIT_CODE | into int) == 0 {
@@ -117,9 +118,16 @@ def read-only-style [] {
 }
 
 def duration-style [] {
-    let duration_secs = ($env.CMD_DURATION_MS | into int) / 1000
-    if $duration_secs > 1 {
-        $'[(ansi yellow)($duration_secs | math round -p 1)s(ansi reset)]'
+    let secs = ($env.CMD_DURATION_MS | into int) / 1000
+    if $secs > 1 {
+        mut ret = [$'[($DURATION_STYLE)']
+        let minutes = $secs // 60
+        if $minutes > 0 {
+            $ret = ($ret | append $'($minutes)m')
+        }
+
+        $ret = ($ret | append $'($secs mod 60 | math round -p 1)s')
+        ($ret | append $'(ansi reset)]' | str join)
     } else {
         ''
     }
