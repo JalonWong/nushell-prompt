@@ -118,16 +118,19 @@ def read-only-style [] {
 }
 
 def duration-style [] {
-    let secs = ($env.CMD_DURATION_MS | into int) / 1000
+    mut secs = ($env.CMD_DURATION_MS | into int) / 1000
     if $secs > 1 {
-        mut ret = [$'[($DURATION_STYLE)']
-        let minutes = $secs // 60
-        if $minutes > 0 {
-            $ret = ($ret | append $'($minutes)m')
+        mut ret = [$'[took ($DURATION_STYLE)']
+
+        if $secs >= 3600 {
+            $ret = ($ret | append $'($secs // 3600)h ($secs mod 3600 // 60)m ')
+            $secs = $secs mod 60
+        } else if $secs >= 60 {
+            $ret = ($ret | append $'($secs // 60)m ')
+            $secs = $secs mod 60
         }
 
-        $ret = ($ret | append $'($secs mod 60 | math round -p 1)s')
-        ($ret | append $'(ansi reset)]' | str join)
+        ($ret | append $'($secs | math round -p 1)s(ansi reset)]' | str join)
     } else {
         ''
     }
