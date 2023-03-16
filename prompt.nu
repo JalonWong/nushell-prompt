@@ -24,6 +24,7 @@ export def left-prompt [modules: list] {
     ($modules | each { |name| (exec-module $name)} | append $'(prompt-indicator)' | str join)
 }
 
+# Parallel run
 export def par-left-prompt [modules: list] {
     let str_table = ($modules | par-each { |name|
         { name: $name, content: (exec-module $name) }
@@ -137,7 +138,7 @@ def duration-style [] {
 }
 
 def fast-git-style [] {
-    let b_info = (do --ignore-errors { git --no-optional-locks branch -v } )
+    let b_info = (do -p { git --no-optional-locks branch -v } | str trim)
     if ($b_info | is-empty) {
         ''
     } else {
@@ -164,7 +165,7 @@ def fast-git-style [] {
 }
 
 def full-git-style [] {
-    let info_lines = (do --ignore-errors { git --no-optional-locks status --porcelain=2 --branch } | str trim | lines)
+    let info_lines = (do -p { git --no-optional-locks status --porcelain=2 --branch } | str trim | lines)
     if ($info_lines | is-empty) {
         ''
     } else {
@@ -311,9 +312,9 @@ def update-git-status [
 # Helper ----------------------------------------------------------------------
 
 def get-username [] {
-    if 'USERNAME' in (env).name {
+    if 'USERNAME' in $env {
         $env.USERNAME
-    } else if 'USER' in (env).name {
+    } else if 'USER' in $env {
         $env.USER
     } else {
         ''
@@ -321,7 +322,7 @@ def get-username [] {
 }
 
 def is-self-user [name: string] {
-    if 'LOGNAME' in (env).name {
+    if 'LOGNAME' in $env {
         ($env.LOGNAME == $name)
     } else {
         true
@@ -329,9 +330,9 @@ def is-self-user [name: string] {
 }
 
 def get-hostname [] {
-    if 'COMPUTERNAME' in (env).name {
+    if 'COMPUTERNAME' in $env {
         $env.COMPUTERNAME
-    } else if 'HOSTNAME' in (env).name {
+    } else if 'HOSTNAME' in $env {
         $env.HOSTNAME
     } else {
         ''
@@ -339,11 +340,11 @@ def get-hostname [] {
 }
 
 def is-ssh-session [] {
-    if 'SSH_CONNECTION' in (env).name {
+    if 'SSH_CONNECTION' in $env {
         true
-    } else if 'SSH_CLIENT' in (env).name {
+    } else if 'SSH_CLIENT' in $env {
         true
-    } else if 'SSH_TTY' in (env).name {
+    } else if 'SSH_TTY' in $env {
         true
     } else {
         false
