@@ -15,13 +15,15 @@ export def full-left-prompt [] {
         'dir',
         'full-git'
         'duration',
+        'wsl',
     ])
 }
 
 # Filter ----------------------------------------------------------------------
 
 export def left-prompt [modules: list] {
-    ($modules | each { |name| (exec-module $name)} | append $'(prompt-indicator)' | str join)
+    let ret = ($modules | each { |name| (exec-module $name)} | append $'(prompt-indicator)' | str join)
+    $'(ansi reset)($ret)'
 }
 
 # Parallel run
@@ -29,7 +31,8 @@ export def par-left-prompt [modules: list] {
     let str_table = ($modules | par-each { |name|
         { name: $name, content: (exec-module $name) }
     })
-    ($modules | each { |name| ($str_table | where name == $'($name)' | get content.0)} | append $'(prompt-indicator)' | str join)
+    let ret = ($modules | each { |name| ($str_table | where name == $'($name)' | get content.0)} | append $'(prompt-indicator)' | str join)
+    $'(ansi reset)($ret)'
 }
 
 def exec-module [name: string] {
@@ -45,6 +48,8 @@ def exec-module [name: string] {
         (full-git-style)
     } else if $name == 'duration' {
         (duration-style)
+    } else if $name == 'wsl' {
+        (wsl-style)
     } else {
         ''
     }
@@ -81,7 +86,15 @@ def username-style [show_host: bool] {
     } else if (is-self-user $name) == false {
         $'($USER_STYLE)($name)(ansi dark_gray):(ansi reset)'
     } else {
-        $'(ansi reset)'
+        ''
+    }
+}
+
+def wsl-style [] {
+    if 'WSLENV' in $env {
+        $'(ansi dark_gray)  WSL(ansi reset)'
+    } else {
+        ''
     }
 }
 
