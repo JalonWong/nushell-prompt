@@ -80,7 +80,7 @@ def prompt-indicator [] {
 }
 
 def username-style [show_host: bool] {
-    let name = get-username
+    let name = (get-username)
     if $show_host and (is-ssh-session) {
         $'($USER_STYLE)($name)(ansi dark_gray)@($USER_STYLE)(get-hostname)(ansi dark_gray):(ansi reset)'
     } else if (is-self-user $name) == false {
