@@ -1,8 +1,8 @@
-# let-env PROMPT_INDICATOR = { "" }
+# let-env PROMPT_INDICATOR = {|| "" }
 #
-# let-env PROMPT_COMMAND = { full-left-prompt }
+# let-env PROMPT_COMMAND = {|| full-left-prompt }
 # or
-# let-env PROMPT_COMMAND = { left-prompt [
+# let-env PROMPT_COMMAND = {|| left-prompt [
 #     'user',
 #     'dir',
 #     'fast-git'
@@ -206,7 +206,7 @@ def full-git-style [] {
             # Branch
             if $l.0 == '#' {
                 if $l.1 == 'branch.oid' {
-                    let id = ($l.2 | str substring 0,7)
+                    let id = ($l.2 | str substring 0..7)
                     $out = [$"($BRANCH_STYLE)\(HEAD detached at ($id)\)(ansi reset)"]
                 } else if $l.1 == 'branch.head' {
                     if $l.2 != "\(detached\)" {
