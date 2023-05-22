@@ -39,10 +39,10 @@ Modify the content as follows:
 ```nu
 [
     'user', # Only display user name. Always hide the hostname
-    'user-host', # Automatically display the hostname when using SSH remote login名
+    'user-host', # Automatically display the hostname when using SSH remote login.
     'dir', # Display Current directory
     'full-git' # More comprehensive Git information, including stage status.
-    'fast-git' # Faster Git information, with less information compared to full-git, suitable for Windows systems
+    'fast-git' # Faster Git information, with less information compared to full-git, suitable for Windows systems.
                # You can also choose neither of them.
     'duration', # Command execution time.
     'wsl', # WSL environment indicator
