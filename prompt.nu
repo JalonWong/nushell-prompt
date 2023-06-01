@@ -155,7 +155,7 @@ def fast-git-style [] {
     if ($b_info | is-empty) {
         ''
     } else {
-        let info = ($b_info | parse -r '\* (?<name>(\([\w ]+\))|([\(\)\w\/\-\.]+)) +\w+ (\[((?<state>[^\]]+))+\])?')
+        let info = ($b_info | parse -r '\* (?<name>(\([\S ]+\))|([\w\/\-\.]+)) +\w+ (\[((?<state>[^\]]+))+\])?')
         let state_list = ($info.state.0 | split row ', ' | each { |it|
             let p = ($it | parse "{s} {n}")
             if ($p | is-empty) {
