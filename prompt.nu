@@ -8,6 +8,9 @@
 #     'fast-git'
 #     'duration',
 # ]}
+#
+# Optional:
+# let-env PROMPT_COMMAND_RIGHT = {|| "" }
 
 export def full-left-prompt [] {
     (par-left-prompt [
