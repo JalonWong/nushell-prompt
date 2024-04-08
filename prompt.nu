@@ -154,11 +154,9 @@ def duration-style [] {
 }
 
 def fast-git-style [] {
-    let b_info = (do -p { git --no-optional-locks branch -v } | str trim)
-    if ($b_info | is-empty) {
-        ''
-    } else {
-        let info = ($b_info | parse -r '\* (?<name>(\([\S ]+\))|([\w\/\-\.]+)) +\w+ (\[((?<state>[^\]]+))+\])?')
+    let ret = (do -p { git --no-optional-locks branch -v } | complete)
+    if ($ret.exit_code == 0) {
+        let info = ($ret.stdout | str trim | parse -r '\* (?<name>(\([\S ]+\))|([\w\/\-\.]+)) +\w+ (\[((?<state>[^\]]+))+\])?')
         let state_list = ($info.state.0 | split row ', ' | each { |it|
             let p = ($it | parse "{s} {n}")
             if ($p | is-empty) {
@@ -177,14 +175,15 @@ def fast-git-style [] {
         })
         let state_str = ($state_list | str join)
         $'[($BRANCH_STYLE)($info.name.0)(ansi reset)($state_str)(ansi reset)]'
+    } else {
+        ''
     }
 }
 
 def full-git-style [] {
-    let info_lines = (do -p { git --no-optional-locks status --porcelain=2 --branch } | str trim | lines)
-    if ($info_lines | is-empty) {
-        ''
-    } else {
+    let ret = (do { git --no-optional-locks status --porcelain=2 --branch } | complete)
+    if ($ret.exit_code == 0) {
+        let info_lines = ($ret.stdout | str trim | lines)
         # Scan lines
         let info = ($info_lines | reduce -f {
             out: [],
@@ -307,6 +306,8 @@ def full-git-style [] {
         }
 
         $'[($out_list | str join)(ansi reset)]'
+    } else {
+        ''
     }
 }
 
