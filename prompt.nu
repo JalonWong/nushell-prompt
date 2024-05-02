@@ -155,7 +155,9 @@ def duration-style [] {
 
 def fast-git-style [] {
     let ret = (do -p { git --no-optional-locks branch -v } | complete)
-    if ($ret.exit_code == 0) {
+    if ($ret.exit_code != 0 or ($ret.stdout | is-empty)) {
+        ''
+    } else {
         let info = ($ret.stdout | str trim | parse -r '\* (?<name>(\([\S ]+\))|([\w\/\-\.]+)) +\w+ (\[((?<state>[^\]]+))+\])?')
         let state_list = ($info.state.0 | split row ', ' | each { |it|
             let p = ($it | parse "{s} {n}")
@@ -175,8 +177,6 @@ def fast-git-style [] {
         })
         let state_str = ($state_list | str join)
         $'[($BRANCH_STYLE)($info.name.0)(ansi reset)($state_str)(ansi reset)]'
-    } else {
-        ''
     }
 }
 
