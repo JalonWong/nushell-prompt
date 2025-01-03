@@ -154,7 +154,7 @@ def duration-style [] {
 }
 
 def fast-git-style [] {
-    let ret = (do -p { git --no-optional-locks branch -v } | complete)
+    let ret = (do --ignore-errors { git --no-optional-locks branch -v } | complete)
     if ($ret.exit_code != 0 or ($ret.stdout | is-empty)) {
         ''
     } else {
