@@ -109,7 +109,7 @@ def current-dir-style [] {
         '~'
     } else {
         let current_dir_relative_to_home = (
-            do --ignore-errors { $current_dir | path relative-to $nu.home-path } | str join
+            do --ignore-errors { $current_dir | path relative-to $nu.home-path }
         )
 
         if ($current_dir_relative_to_home | is-empty) == false {
