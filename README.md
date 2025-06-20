@@ -4,12 +4,13 @@
 ![](image/p.png)
 
 ## Instructions
-1. Download the `prompt.nu` file to the `~/.config/nushell` directory.
+1. Download the `prompt.nu` file to the directory `~/.config/nushell` or whatever you want.
 2. Run `config nu` and add the following content to the configuration file.
     ```nu
     source ~/.config/nushell/prompt.nu
-    let-env PROMPT_INDICATOR = {|| "" }
-    let-env PROMPT_COMMAND = {|| full-left-prompt }
+    $env.PROMPT_COMMAND = {|| full-left-prompt }
+    $env.PROMPT_INDICATOR = {|| "" }
+    $env.PROMPT_COMMAND_RIGHT = {|| "" }
     ```
 3. Save the file and restart Nushell.
 
@@ -18,7 +19,7 @@ Modify the content as follows:
 
 1. Sequential execution of custom options
     ```nu
-    let-env PROMPT_COMMAND = {|| left-prompt [
+    $env.PROMPT_COMMAND = {|| left-prompt [
         'user',
         'dir',
         'fast-git'
@@ -27,7 +28,7 @@ Modify the content as follows:
     ```
 2. Parallel execution of custom options. Currently, there is no significant difference in performance.
     ```nu
-    let-env PROMPT_COMMAND = {|| par-left-prompt [
+    $env.PROMPT_COMMAND = {|| par-left-prompt [
         'user-host',
         'dir',
         'full-git'
