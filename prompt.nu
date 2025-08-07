@@ -159,23 +159,28 @@ def fast-git-style [] {
         ''
     } else {
         let info = ($ret.stdout | str trim | parse -r '\* (?<name>(\([\S ]+\))|([\w\/\-\.]+)) +\w+ (\[((?<state>[^\]]+))+\])?')
-        let state_list = ($info.state.0 | split row ', ' | each { |it|
-            let p = ($it | parse "{s} {n}")
-            if ($p | is-empty) {
-                if ($it | str starts-with "gone") {
-                    $' (ansi light_red)(char failed)'
+        let state = $info.state.0
+        mut state_str = ''
+        if (($state | is-empty) == false) {
+            let state_list = ($state | split row ', ' | each { |it|
+                let p = ($it | parse "{s} {n}")
+                if ($p | is-empty) {
+                    if ($it | str starts-with "gone") {
+                        $' (ansi light_red)(char failed)'
+                    } else {
+                        ''
+                    }
+                } else if $p.s.0 == 'ahead' {
+                    $' ($AHEAD_STYLE)($p.n.0)(ansi reset)'
+                } else if $p.s.0 == 'behind' {
+                    $' ($BEHIND_STYLE)($p.n.0)'
                 } else {
-                    ''
+                    $' (ansi red)($p.s.0) ($p.n.0)'
                 }
-            } else if $p.s.0 == 'ahead' {
-                $' ($AHEAD_STYLE)($p.n.0)(ansi reset)'
-            } else if $p.s.0 == 'behind' {
-                $' ($BEHIND_STYLE)($p.n.0)'
-            } else {
-                $' (ansi red)($p.s.0) ($p.n.0)'
-            }
-        })
-        let state_str = ($state_list | str join)
+            })
+            $state_str = ($state_list | str join)
+        }
+
         $'[($BRANCH_STYLE)($info.name.0)(ansi reset)($state_str)(ansi reset)]'
     }
 }
