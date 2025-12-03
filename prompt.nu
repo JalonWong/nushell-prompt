@@ -25,8 +25,8 @@ export def full-left-prompt [] {
 # Filter ----------------------------------------------------------------------
 
 export def left-prompt [modules: list] {
-    let ret = ($modules | each { |name| (exec-module $name)} | append $'(prompt-indicator)' | str join)
-    $'(ansi reset)($ret)'
+    let rst = ($modules | each { |name| (exec-module $name)} | append $'(prompt-indicator)' | str join)
+    $'(ansi reset)($rst)'
 }
 
 # Parallel run
@@ -34,8 +34,8 @@ export def par-left-prompt [modules: list] {
     let str_table = ($modules | par-each { |name|
         { name: $name, content: (exec-module $name) }
     })
-    let ret = ($modules | each { |name| ($str_table | where name == $'($name)' | get content.0)} | append $'(prompt-indicator)' | str join)
-    $'(ansi reset)($ret)'
+    let rst = ($modules | each { |name| ($str_table | where name == $'($name)' | get content.0)} | append $'(prompt-indicator)' | str join)
+    $'(ansi reset)($rst)'
 }
 
 def exec-module [name: string] {
@@ -137,28 +137,28 @@ def read-only-style [] {
 def duration-style [] {
     mut secs = ($env.CMD_DURATION_MS | into int) / 1000
     if $secs > 1 {
-        mut ret = [$'[took ($DURATION_STYLE)']
+        mut rst = [$'[took ($DURATION_STYLE)']
 
         if $secs >= 3600 {
-            $ret = ($ret | append $'($secs // 3600)h ($secs mod 3600 // 60)m ')
+            $rst = ($rst | append $'($secs // 3600)h ($secs mod 3600 // 60)m ')
             $secs = $secs mod 60
         } else if $secs >= 60 {
-            $ret = ($ret | append $'($secs // 60)m ')
+            $rst = ($rst | append $'($secs // 60)m ')
             $secs = $secs mod 60
         }
 
-        ($ret | append $'($secs | math round -p 1)s(ansi reset)]' | str join)
+        ($rst | append $'($secs | math round -p 1)s(ansi reset)]' | str join)
     } else {
         ''
     }
 }
 
 def fast-git-style [] {
-    let ret = (do --ignore-errors { git --no-optional-locks branch -v } | complete)
-    if ($ret.exit_code != 0 or ($ret.stdout | is-empty)) {
+    let rst = (do --ignore-errors { git --no-optional-locks branch -v } | complete)
+    if ($rst.exit_code != 0 or ($rst.stdout | is-empty)) {
         ''
     } else {
-        let info = ($ret.stdout | str trim | parse -r '\* (?<name>(\([\S ]+\))|([\w\/\-\.]+)) +\w+ (\[((?<state>[^\]]+))+\])?')
+        let info = ($rst.stdout | str trim | parse -r '\* (?<name>(\([\S ]+\))|([\w\/\-\.]+)) +\w+ (\[((?<state>[^\]]+))+\])?')
         let state = $info.state.0
         mut state_str = ''
         if (($state | is-empty) == false) {
@@ -186,9 +186,9 @@ def fast-git-style [] {
 }
 
 def full-git-style [] {
-    let ret = (do { git --no-optional-locks status --porcelain=2 --branch } | complete)
-    if ($ret.exit_code == 0) {
-        let info_lines = ($ret.stdout | str trim | lines)
+    let rst = (do { git --no-optional-locks status --porcelain=2 --branch } | complete)
+    if ($rst.exit_code == 0) {
+        let info_lines = ($rst.stdout | str trim | lines)
         # Scan lines
         let info = ($info_lines | reduce -f {
             out: [],
@@ -356,6 +356,9 @@ def get-hostname [] {
         $env.COMPUTERNAME
     } else if 'HOSTNAME' in $env {
         $env.HOSTNAME
+    } else if (which hostname | is-not-empty) {
+        let rst = (do --ignore-errors { hostname } | complete)
+        ($rst.stdout | str trim)
     } else {
         ''
     }
