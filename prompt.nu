@@ -1,8 +1,8 @@
-# let-env PROMPT_INDICATOR = {|| "" }
+# $env.PROMPT_INDICATOR = {|| "" }
 #
-# let-env PROMPT_COMMAND = {|| full-left-prompt }
+# $env.PROMPT_COMMAND = {|| full-left-prompt }
 # or
-# let-env PROMPT_COMMAND = {|| left-prompt [
+# $env.PROMPT_COMMAND = {|| left-prompt [
 #     'user',
 #     'dir',
 #     'fast-git'
@@ -10,7 +10,7 @@
 # ]}
 #
 # Optional:
-# let-env PROMPT_COMMAND_RIGHT = {|| "" }
+# $env.PROMPT_COMMAND_RIGHT = {|| "" }
 
 export def full-left-prompt [] {
     (par-left-prompt [

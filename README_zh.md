@@ -8,8 +8,9 @@
 2. 运行 `config nu` 并在配置文件中添加如下内容。
     ```nu
     source ~/.config/nushell/prompt.nu
-    let-env PROMPT_INDICATOR = {|| "" }
-    let-env PROMPT_COMMAND = {|| full-left-prompt }
+    $env.PROMPT_COMMAND = {|| full-left-prompt }
+    $env.PROMPT_INDICATOR = {|| "" }
+    $env.PROMPT_COMMAND_RIGHT = {|| "" }
     ```
 3. 保存后重新运行 nushell
 
@@ -18,7 +19,7 @@
 
 1. 顺序执行自定义项
     ```nu
-    let-env PROMPT_COMMAND = {|| left-prompt [
+    $env.PROMPT_COMMAND = {|| left-prompt [
         'user',
         'dir',
         'fast-git'
@@ -27,7 +28,7 @@
     ```
 2. 并列执行自定义项。目前耗时没有什么差异。
     ```nu
-    let-env PROMPT_COMMAND = {|| par-left-prompt [
+    $env.PROMPT_COMMAND = {|| par-left-prompt [
         'user-host',
         'dir',
         'full-git'
