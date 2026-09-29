@@ -24,76 +24,110 @@ export def full-left-prompt [] {
 
 # Filter ----------------------------------------------------------------------
 
+def exec-module [label: string] {
+    if ($label | str starts-with 'user') {
+        (user-host-name-str $label)
+    } else if $label == 'dir' {
+        $'(current-dir-str) (read-only-str)'
+    } else if $label == 'fast-git' {
+        (fast-git-str)
+    } else if $label == 'full-git' {
+        (full-git-str)
+    } else if $label == 'duration' {
+        (duration-str)
+    } else if $label == 'wsl' {
+        (wsl-str)
+    } else if $label == 'new-line' {
+        "\r\n"
+    } else {
+        ''
+    }
+}
+
 export def left-prompt [modules: list] {
-    let rst = ($modules | each { |name| (exec-module $name)} | append $'(prompt-indicator)' | str join)
-    $'(ansi reset)($rst)'
+    let str = ($modules | each { |label| (exec-module $label)} | str join)
+    (final-str $str)
 }
 
 # Parallel run
 export def par-left-prompt [modules: list] {
-    let str_table = ($modules | par-each { |name|
-        { name: $name, content: (exec-module $name) }
+    let str_table = ($modules | par-each { |label|
+        { label: $label, content: (exec-module $label) }
     })
-    let rst = ($modules | each { |name| ($str_table | where name == $'($name)' | get content.0)} | append $'(prompt-indicator)' | str join)
-    $'(ansi reset)($rst)'
+    let str = ($modules | each { |label| ($str_table | where label == $'($label)' | get content.0)} | str join)
+    (final-str $str)
 }
 
-def exec-module [name: string] {
-    if $name == 'user-host' {
-        (username-style true)
-    } else if $name == 'user' {
-        (username-style false)
-    } else if $name == 'dir' {
-        $'(current-dir-style) (read-only-style)'
-    } else if $name == 'fast-git' {
-        (fast-git-style)
-    } else if $name == 'full-git' {
-        (full-git-style)
-    } else if $name == 'duration' {
-        (duration-style)
-    } else if $name == 'wsl' {
-        (wsl-style)
-    } else {
-        ''
-    }
-}
-
-# Styles ----------------------------------------------------------------------
+# Content ---------------------------------------------------------------------
 
 let USER_STYLE = $'(ansi green)'
 let PATH_STYLE = $'(ansi light_blue)'
 let BRANCH_STYLE = $'(ansi dark_gray_bold)'
-let AHEAD_STYLE = $'(ansi green)(char branch_ahead)'
-let BEHIND_STYLE = $'(ansi yellow_bold)(char branch_behind)'
-let STAGE_STYLE = $'(ansi blue)S(ansi reset)'
-let UNSTAGE_STYLE = $'(ansi dark_gray)U(ansi reset)'
-let NEW_FILE_STYLE = $'(ansi green)N'
-let ADD_FILE_STYLE = $'(ansi green)A'
-let MODIFY_FILE_STYLE = $'(ansi yellow)M'
-let DELETE_FILE_STYLE = $'(ansi red)D'
-let CONFLICT_FILE_STYLE = $'(ansi light_purple_bold)C'
 let DURATION_STYLE = $'(ansi yellow)'
+let AHEAD_SYMBOL = $'(ansi green)(char branch_ahead)'
+let BEHIND_SYMBOL = $'(ansi yellow_bold)(char branch_behind)'
+let STAGE_SYMBOL = $'(ansi blue)S(ansi reset)'
+let UNSTAGE_SYMBOL = $'(ansi dark_gray)U(ansi reset)'
+let NEW_FILE_SYMBOL = $'(ansi green)N'
+let ADD_FILE_SYMBOL = $'(ansi green)A'
+let MODIFY_FILE_SYMBOL = $'(ansi yellow)M'
+let DELETE_FILE_SYMBOL = $'(ansi red)D'
+let CONFLICT_FILE_SYMBOL = $'(ansi light_purple_bold)C'
 
-def prompt-indicator [] {
+def final-str [str: string] {
+    $'(error-symbol)($str)($"\r\n(ansi cyan)> ")(ansi reset)'
+}
+
+def error-symbol [] {
     if ($env.LAST_EXIT_CODE | into int) == 0 {
-        $"\r\n(ansi cyan)> "
+        ""
     } else {
-        $"\r\n(ansi red)x "
+        $"(ansi red)x "
     }
 }
 
-def username-style [show_host: bool] {
-    let name = (get-username)
-    if $show_host and (is-ssh-session) {
-        $'($USER_STYLE)($name)(ansi dark_gray)@($USER_STYLE)(get-hostname)(ansi dark_gray):(ansi reset)'
-    } else if (is-self-user $name) == false {
-        $'($USER_STYLE)($name)(ansi dark_gray):(ansi reset)'
-    } else {
-        ''
+def user-host-name-str [label: string] {
+    mut words = ($label | split words)
+    mut index = 0
+    mut show = [false, false]
+    mut always = [false, false]
+    for w in $words {
+        if $w == 'user' {
+            $show.0 = true
+            $index = 0
+        } else if $w == 'host' {
+            $show.1 = true
+            $index = 1
+        } else if $w == 'always' {
+            $always = ($always | update $index true)
+        }
     }
+
+    let username = (get-username)
+    let ssh_session = (is-ssh-session)
+    let other_user = not (is-self-user $username)
+    mut rst = []
+
+    if $show.0 {
+        if $always.0 or $other_user or $ssh_session {
+            $rst = ($rst | append $'($USER_STYLE)($username)(ansi dark_gray)')
+        }
+    }
+
+    if $show.1 {
+        if $always.1 or $ssh_session {
+            $rst = ($rst | append $'@($USER_STYLE)(get-hostname)(ansi dark_gray)')
+        }
+    }
+
+    if not ($rst | is-empty) {
+        $rst = ($rst | append ':')
+    }
+
+    ($rst | str join)
 }
 
-def wsl-style [] {
+def wsl-str [] {
     if 'WSLENV' in $env {
         $'(ansi dark_gray)  WSL(ansi reset)'
     } else {
@@ -102,7 +136,7 @@ def wsl-style [] {
 }
 
 # Get the current directory with home abbreviated
-def current-dir-style [] {
+def current-dir-str [] {
     let current_dir = ($env.PWD)
 
     let current_dir_abbreviated = if $current_dir == $nu.home-dir {
@@ -126,7 +160,7 @@ def current-dir-style [] {
     }
 }
 
-def read-only-style [] {
+def read-only-str [] {
     if (ls -Dl $env.PWD | get readonly.0) {
         $'[(ansi red_bold)ro(ansi reset)]'
     } else {
@@ -134,7 +168,7 @@ def read-only-style [] {
     }
 }
 
-def duration-style [] {
+def duration-str [] {
     mut secs = ($env.CMD_DURATION_MS | into int) / 1000
     if $secs > 1 {
         mut rst = [$'[took ($DURATION_STYLE)']
@@ -153,7 +187,7 @@ def duration-style [] {
     }
 }
 
-def fast-git-style [] {
+def fast-git-str [] {
     let rst = (do --ignore-errors { git --no-optional-locks branch -v } | complete)
     if ($rst.exit_code != 0 or ($rst.stdout | is-empty)) {
         ''
@@ -171,9 +205,9 @@ def fast-git-style [] {
                         ''
                     }
                 } else if $p.s.0 == 'ahead' {
-                    $' ($AHEAD_STYLE)($p.n.0)(ansi reset)'
+                    $' ($AHEAD_SYMBOL)($p.n.0)(ansi reset)'
                 } else if $p.s.0 == 'behind' {
-                    $' ($BEHIND_STYLE)($p.n.0)'
+                    $' ($BEHIND_SYMBOL)($p.n.0)'
                 } else {
                     $' (ansi red)($p.s.0) ($p.n.0)'
                 }
@@ -185,7 +219,7 @@ def fast-git-style [] {
     }
 }
 
-def full-git-style [] {
+def full-git-str [] {
     let rst = (do { git --no-optional-locks status --porcelain=2 --branch } | complete)
     if ($rst.exit_code == 0) {
         let info_lines = ($rst.stdout | str trim | lines)
@@ -224,11 +258,11 @@ def full-git-style [] {
                         $remote = true
                         let state = ($l.2 | parse "+{an} -{bn}")
                         if $state.an.0 != '0' {
-                            $out = ($out | append $' ($AHEAD_STYLE)($state.an.0)(ansi reset)')
+                            $out = ($out | append $' ($AHEAD_SYMBOL)($state.an.0)(ansi reset)')
                         }
 
                         if $state.bn.0 != '0' {
-                            $out = ($out | append $' ($BEHIND_STYLE)($state.bn.0)')
+                            $out = ($out | append $' ($BEHIND_SYMBOL)($state.bn.0)')
                         }
                     }
                 }
@@ -272,42 +306,42 @@ def full-git-style [] {
         # Stage string
         mut stage_list = []
         if $info.staged.a > 0 {
-            $stage_list = ($stage_list | append $' ($ADD_FILE_STYLE)($info.staged.a)(ansi reset)')
+            $stage_list = ($stage_list | append $' ($ADD_FILE_SYMBOL)($info.staged.a)(ansi reset)')
         }
 
         if $info.staged.m > 0 {
-            $stage_list = ($stage_list | append $' ($MODIFY_FILE_STYLE)($info.staged.m)(ansi reset)')
+            $stage_list = ($stage_list | append $' ($MODIFY_FILE_SYMBOL)($info.staged.m)(ansi reset)')
         }
 
         if $info.staged.d > 0 {
-            $stage_list = ($stage_list | append $' ($DELETE_FILE_STYLE)($info.staged.d)(ansi reset)')
+            $stage_list = ($stage_list | append $' ($DELETE_FILE_SYMBOL)($info.staged.d)(ansi reset)')
         }
 
         # Unstage string
         mut unstage_list = []
         if $info.unstaged.c > 0 {
-            $unstage_list = ($unstage_list | append $' ($CONFLICT_FILE_STYLE)($info.unstaged.c)(ansi reset)')
+            $unstage_list = ($unstage_list | append $' ($CONFLICT_FILE_SYMBOL)($info.unstaged.c)(ansi reset)')
         }
 
         if $info.unstaged.n > 0 {
-            $unstage_list = ($unstage_list | append $' ($NEW_FILE_STYLE)($info.unstaged.n)(ansi reset)')
+            $unstage_list = ($unstage_list | append $' ($NEW_FILE_SYMBOL)($info.unstaged.n)(ansi reset)')
         }
 
         if $info.unstaged.m > 0 {
-            $unstage_list = ($unstage_list | append $' ($MODIFY_FILE_STYLE)($info.unstaged.m)(ansi reset)')
+            $unstage_list = ($unstage_list | append $' ($MODIFY_FILE_SYMBOL)($info.unstaged.m)(ansi reset)')
         }
 
         if $info.unstaged.d > 0 {
-            $unstage_list = ($unstage_list | append $' ($DELETE_FILE_STYLE)($info.unstaged.d)(ansi reset)')
+            $unstage_list = ($unstage_list | append $' ($DELETE_FILE_SYMBOL)($info.unstaged.d)(ansi reset)')
         }
 
         # Append list
         if ($stage_list | length) > 0 {
-            $out_list = ($out_list | append $' | ($STAGE_STYLE):' | append $stage_list)
+            $out_list = ($out_list | append $' | ($STAGE_SYMBOL):' | append $stage_list)
         }
 
         if ($unstage_list | length) > 0 {
-            $out_list = ($out_list | append $' | ($UNSTAGE_STYLE):' | append $unstage_list)
+            $out_list = ($out_list | append $' | ($UNSTAGE_SYMBOL):' | append $unstage_list)
         }
 
         $'[($out_list | str join)(ansi reset)]'
@@ -333,7 +367,7 @@ def update-git-status [
 
 # Helper ----------------------------------------------------------------------
 
-def get-username [] {
+def get-username []: nothing -> string {
     if 'USERNAME' in $env {
         $env.USERNAME
     } else if 'USER' in $env {
@@ -343,7 +377,7 @@ def get-username [] {
     }
 }
 
-def is-self-user [name: string] {
+def is-self-user [name: string]: nothing -> bool {
     if 'LOGNAME' in $env {
         ($env.LOGNAME == $name)
     } else {
@@ -351,7 +385,7 @@ def is-self-user [name: string] {
     }
 }
 
-def get-hostname [] {
+def get-hostname []: nothing -> string {
     if 'COMPUTERNAME' in $env {
         $env.COMPUTERNAME
     } else if 'HOSTNAME' in $env {
@@ -364,7 +398,7 @@ def get-hostname [] {
     }
 }
 
-def is-ssh-session [] {
+def is-ssh-session []: nothing -> bool {
     if 'SSH_CONNECTION' in $env {
         true
     } else if 'SSH_CLIENT' in $env {

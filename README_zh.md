@@ -39,13 +39,15 @@
 ## 选项列表
 ```nu
 [
-    'user', # 仅显示用户名，始终隐藏主机名
-    'user-host', # 使用 SSH 远程登陆时自动显示主机名
-    'dir', # 显示当前目录
+    'user', # 当切换到其它用户时，自动显示用户名
+    'user-host', # 自动显示用户名的同时，当使用 SSH 远程登陆时自动显示主机名
+    'user-always-host', # 你可以让用户名或主机名强制显示。
+    'dir', # 显示当前目录。
     'full-git' # 较完整的 Git 信息，包括 stage 状态。
     'fast-git' # 较快速的 Git 信息，比 full-git 信息要少，适用于 Windows 系统。
                # 也可以两个都不选。
-    'duration', # 命令执行时间
-    'wsl', # WSL 环境标识
+    'duration', # 命令执行时间。
+    'wsl', # WSL 环境标识。
+    'new-line', # 换行
 ]
 ```
