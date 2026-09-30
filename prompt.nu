@@ -160,7 +160,7 @@ def current-dir-str []: nothing -> string {
         $'($PATH_STYLE)($current_dir_abbreviated)'
     }
 
-    if (ls -Dl $env.PWD | get readonly.0) {
+    if (ls -Dl $current_dir | get readonly.0) {
         $'($rst) (ansi reset)[(ansi red_bold)RO(ansi reset)]'
     } else {
         $rst
