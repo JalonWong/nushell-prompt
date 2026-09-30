@@ -14,6 +14,7 @@
 
 export def full-left-prompt [] {
     (par-left-prompt [
+        'new-line',
         'user-host',
         'dir',
         'full-git'
