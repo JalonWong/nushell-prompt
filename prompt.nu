@@ -29,7 +29,7 @@ def exec-module [label: string] {
     if ($label | str starts-with 'user') {
         (user-host-name-str $label)
     } else if $label == 'dir' {
-        $'(current-dir-str) (read-only-str)'
+        (current-dir-str)
     } else if $label == 'fast-git' {
         (fast-git-str)
     } else if $label == 'full-git' {
@@ -45,17 +45,17 @@ def exec-module [label: string] {
     }
 }
 
-export def left-prompt [modules: list] {
+export def left-prompt [modules: list<string>] {
     let str = ($modules | each { |label| (exec-module $label)} | str join)
     (final-str $str)
 }
 
 # Parallel run
-export def par-left-prompt [modules: list] {
+export def par-left-prompt [modules: list<string>] {
     let str_table = ($modules | par-each { |label|
         { label: $label, content: (exec-module $label) }
     })
-    let str = ($modules | each { |label| ($str_table | where label == $'($label)' | get content.0)} | str join)
+    let str = ($modules | each { |label| ($str_table | where label == $label | get content.0)} | str join)
     (final-str $str)
 }
 
@@ -76,7 +76,7 @@ let DELETE_FILE_SYMBOL = $'(ansi red)D'
 let CONFLICT_FILE_SYMBOL = $'(ansi light_purple_bold)C'
 
 def final-str [str: string] {
-    $'(error-symbol)($str)($"\r\n(ansi cyan)> ")(ansi reset)'
+    $'(error-symbol)($str)($"\r\n(ansi cyan)> (ansi reset)")'
 }
 
 def error-symbol [] {
@@ -130,14 +130,14 @@ def user-host-name-str [label: string] {
 
 def wsl-str [] {
     if 'WSLENV' in $env {
-        $'(ansi dark_gray)  WSL(ansi reset)'
+        $'(ansi dark_gray)  WSL'
     } else {
         ''
     }
 }
 
 # Get the current directory with home abbreviated
-def current-dir-str [] {
+def current-dir-str []: nothing -> string {
     let current_dir = ($env.PWD)
 
     let current_dir_abbreviated = if $current_dir == $nu.home-dir {
@@ -154,18 +154,16 @@ def current-dir-str [] {
         }
     }
 
-    if (is-admin) {
-        $'(ansi red_bold)($current_dir_abbreviated)(ansi reset)'
+    let rst = if (is-admin) {
+        $'(ansi red_bold)($current_dir_abbreviated)'
     } else {
-        $'($PATH_STYLE)($current_dir_abbreviated)(ansi reset)'
+        $'($PATH_STYLE)($current_dir_abbreviated)'
     }
-}
 
-def read-only-str [] {
     if (ls -Dl $env.PWD | get readonly.0) {
-        $'[(ansi red_bold)ro(ansi reset)]'
+        $'($rst) (ansi reset)[(ansi red_bold)RO(ansi reset)]'
     } else {
-        ''
+        $rst
     }
 }
 
